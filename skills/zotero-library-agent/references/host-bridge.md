@@ -33,9 +33,9 @@ This section is generated from the Host Bridge surface catalog.
 
 ### CLI release check
 
-- Expected `zotero-bridge` CLI version for this generated surface: `0.2.1`.
-- Confirm with `<zotero-bridge> --version` when the loaded skill or reference path is uncertain, command help does not match this surface, or a CLI error points to command shape mismatch.
-- If the observed version differs from the expected version, stop using this loaded skill copy for command syntax. Prefer the workspace-injected skill and run-local shim, then inspect `<zotero-bridge> --help` or the generated reference beside that workspace copy.
+- Run `<zotero-bridge> surface identity --json` before relying on a loaded command contract.
+- Compare CLI schema, build fingerprint, and command catalog checksum with the release envelope shipped beside the current surface. SemVer alone is not compatibility evidence.
+- If identity differs, stop and use the wrapper, CLI shim, and release envelope from one release set.
 
 ### Discovery commands
 
@@ -50,6 +50,7 @@ zotero-bridge workflow --help
 zotero-bridge run --help
 zotero-bridge mutation --help
 zotero-bridge file --help
+zotero-bridge call --help
 zotero-bridge context --help
 zotero-bridge product --help
 ```
@@ -106,6 +107,7 @@ zotero-bridge product --help
 | `synthesis topic get-review-input` | `topics.get_review_input` | capability | - |
 | `synthesis topic list` | `topics.list` | capability | - |
 | `workflow agent-apply` | `POST /bridge/v1/workflows/agent-runs/{agentRunId}/apply` | endpoint | - |
+| `workflow agent-apply-status` | `GET /bridge/v1/workflows/agent-runs/{agentRunId}/apply` | endpoint | - |
 | `workflow agent-run` | `POST /bridge/v1/workflows/agent-run` | endpoint | - |
 | `workflow describe` | `POST /bridge/v1/workflows/describe` | endpoint | - |
 | `workflow list` | `GET /bridge/v1/workflows` | endpoint | - |
@@ -143,6 +145,7 @@ zotero-bridge product --help
 | `mutation tag remove` | `mutation.execute` | capability | - |
 | `file download` | `GET /bridge/v1/files/{fileId}` | endpoint | - |
 | `file upload` | `POST /bridge/v1/files/upload` | endpoint | - |
+| `call` | `POST /bridge/v1/call` | service | - |
 | `context collection open` | `POST /bridge/v1/context/collections/open` | endpoint | - |
 | `context current` | `GET /bridge/v1/context/current` | endpoint | - |
 | `context current` | `context.get_current_view` | capability | - |
@@ -161,12 +164,12 @@ zotero-bridge product --help
 - Use inline JSON with `--query` by default. Use stdin, `@file`, or a bare JSON file path only when that source is intentional.
 - Use `zotero-bridge library item search --query '{"text":"graph","limit":10}'` for finite candidate discovery.
 - Use `zotero-bridge library items list --query '{"limit":50,"collectionKey":"COLL"}'` for bounded library inventory pages.
-- Use `zotero-bridge library snapshot --query '{"limit":200,"cursor":"0"}'` for local metadata indexes.
+- Use `zotero-bridge library snapshot --query '{"limit":200}'` for the first local metadata index page.
 - Use `zotero-bridge library readiness missing-pdf|missing-markdown|missing-analysis --query '{"limit":100}'` before scheduling PDF retrieval, Markdown conversion, or literature-analysis work.
 - `library items list` accepts `collectionKey`, `tag`, `itemType`, `query`, `cursor`, and `limit` in `--query`.
 - `library snapshot` accepts `collectionKey`, `collectionId`, `tag`, `itemType`, `query`, `cursor`, and `limit` in `--query`.
 - `library readiness audit` accepts the same library filters plus `checks` and `missingOnly`; Markdown and analysis readiness reuse the Zotero Artifacts column rules.
-- Use `nextCursor` with `hasMore` to page library and snapshot results.
+- Omit `cursor` on the first library, snapshot, or readiness page. When `hasMore` is true, pass the exact returned opaque `nextCursor`; never construct or increment a cursor.
 
 ### Large response pagination
 
@@ -214,14 +217,14 @@ zotero-bridge product --help
 | `debug.persistence.snapshot` | debug | `none` | `object` | `debug persistence` | debug-only, mcp-mirror |
 | `debug.skillrunner.connections.snapshot` | debug | `none` | `object` |  | debug-only, mcp-mirror |
 | `debug.status` | debug | `none` | `object` | `debug status` | debug-only, mcp-mirror |
-| `debug.synthesis.cache.list` | debug | `none` | `object` |  | debug-only, mcp-mirror |
-| `debug.synthesis.cleanInstallReset` | debug | `zotero-ui-required` | `object` |  | debug-only, dangerous, mcp-mirror |
+| `debug.synthesis.cache.list` | debug | `none` | `object` | `debug synthesis cache` | debug-only, mcp-mirror |
+| `debug.synthesis.cleanInstallReset` | debug | `zotero-ui-required` | `object` | `debug synthesis clean-install-reset` | debug-only, dangerous, mcp-mirror |
 | `debug.synthesis.diff` | debug | `none` | `object` | `debug synthesis diff` | debug-only, mcp-mirror |
-| `debug.synthesis.operations.list` | debug | `none` | `object` |  | debug-only, mcp-mirror |
-| `debug.synthesis.paper.inspect` | debug | `none` | `object` |  | debug-only, mcp-mirror |
-| `debug.synthesis.profiler.list` | debug | `none` | `object` |  | debug-only, mcp-mirror |
-| `debug.synthesis.snapshot` | debug | `none` | `object` |  | debug-only, mcp-mirror |
-| `debug.synthesis.topic.inspect` | debug | `none` | `object` |  | debug-only, mcp-mirror |
+| `debug.synthesis.operations.list` | debug | `none` | `object` | `debug synthesis operations` | debug-only, mcp-mirror |
+| `debug.synthesis.paper.inspect` | debug | `none` | `object` | `debug synthesis inspect-paper` | debug-only, mcp-mirror |
+| `debug.synthesis.profiler.list` | debug | `none` | `object` | `debug synthesis profiler` | debug-only, mcp-mirror |
+| `debug.synthesis.snapshot` | debug | `none` | `object` | `debug synthesis snapshot` | debug-only, mcp-mirror |
+| `debug.synthesis.topic.inspect` | debug | `none` | `object` | `debug synthesis inspect-topic` | debug-only, mcp-mirror |
 | `debug.tasks.snapshot` | debug | `none` | `object` | `debug tasks` | debug-only, mcp-mirror |
 | `debug.zotero.eval` | debug | `zotero-ui-required` | `object` | `raw call only` | debug-only, dangerous, raw-only, mcp-mirror |
 <!-- host-bridge-surface:wrapper-reference:end -->
